@@ -26,8 +26,8 @@ cell AS (
 ), 
 feature AS (
     SELECT cellid, ufo_count, 
-        h3_cell_area( cellid) AS area,
         round(1000 * ufo_count / h3_cell_area( cellid)) AS density,
+        h3_cell_area( cellid) AS area,
         ST_Transform( h3_cell_to_boundary_geometry( cellid ), 3857) AS geom
     FROM cell
 ),
