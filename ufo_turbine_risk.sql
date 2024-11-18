@@ -1,11 +1,12 @@
--- Produces MVT tiles of H3 cells showing risk of UFO collision with Wind Turbines. 
+-- Given a tile index, generate UFO/turbine risk as H3 cells,
+-- and generate MVT output of the result. 
 CREATE OR REPLACE
 FUNCTION public.us_ufo_turbine_h3(z integer, x integer, y integer)
 RETURNS bytea
 AS $$
 -- Pre-calculate the tile envelope to avoid repeated calculations
 WITH tile_env AS (
-    SELECT ST_TileEnvelopeClip(z, x, y, margin => 0.125) AS env_geom
+   SELECT ST_Transform(ST_TileEnvelopeClip(z, x, y, margin => 0.125), 4326) AS env_geom
 ),
 -- Calculate the H3 resolution based on zoom level
 resolution AS (
@@ -23,7 +24,7 @@ ufo_cell AS (
         ANY_VALUE(r.h3_res) As h3_res
 	FROM us_ufo
     CROSS JOIN resolution r
-	WHERE ST_Intersects(geom, ST_Transform((SELECT env_geom FROM tile_env), 4326))
+	WHERE ST_Intersects(geom, (SELECT env_geom FROM tile_env))
     GROUP BY cellid
 ), 
 turbine_cell AS (
@@ -31,7 +32,7 @@ turbine_cell AS (
         h3_lat_lng_to_cell(geom, r.h3_res ) AS cellid
 	FROM wind_turbines
     CROSS JOIN resolution r
-	WHERE ST_Intersects(geom, ST_Transform((SELECT env_geom FROM tile_env), 4326))
+	WHERE ST_Intersects(geom, (SELECT env_geom FROM tile_env))
     GROUP BY cellid
 ),
 cell AS (
@@ -67,5 +68,6 @@ SELECT ST_AsMVT(mvtgeom, 'us_ufo_turbine_h3') FROM mvtgeom
 $$
 LANGUAGE 'sql' STABLE STRICT PARALLEL SAFE;
 
-COMMENT ON FUNCTION public.us_ufo_h3 IS 'UFO / Wind Turbine collision risk as H3 cells.';
+COMMENT ON FUNCTION public.us_ufo_turbine_h3 IS 'Risk of UFO-wind turbine collision as H3 cells.';
+
 
