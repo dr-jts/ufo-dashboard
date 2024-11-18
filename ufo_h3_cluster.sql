@@ -23,9 +23,7 @@ cell AS (
   SELECT count(*) AS ufo_count, 
         ST_Transform( ANY_VALUE(geom), 3857) AS geom, 
         ANY_VALUE(state) AS state,
-        h3_lat_lng_to_cell(geom,
-                CASE WHEN z <= 2 THEN 2 ELSE z END
-        ) AS cellid
+        h3_lat_lng_to_cell(geom, r.h3_res) AS cellid
 	FROM us_ufo
     CROSS JOIN resolution r
 	WHERE ST_Intersects(geom, ST_Transform((SELECT env_geom FROM tile_env), 4326))
