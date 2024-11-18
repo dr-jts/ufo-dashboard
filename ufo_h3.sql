@@ -5,14 +5,23 @@ FUNCTION public.us_ufo_h3(z integer, x integer, y integer)
 RETURNS bytea
 AS $$
 WITH
+-- Pre-calculate the tile envelope to avoid repeated calculations
+tile_env AS (
+    SELECT ST_Transform(ST_TileEnvelopeClip(z, x, y, margin => 0.125), 4326) AS env_geom
+),
+-- Calculate the H3 resolution based on zoom level
+resolution AS (
+    SELECT CASE
+        WHEN z <= 2 THEN 2
+        WHEN z <= 5 THEN z
+        ELSE 6
+    END AS h3_res
+),
 cell AS (
-  SELECT count(*) AS ufo_count, h3_lat_lng_to_cell(geom,
-                CASE WHEN z <= 2 THEN 2 ELSE z END
-        ) AS cellid
+  SELECT count(*) AS ufo_count, 
+        h3_lat_lng_to_cell(geom, (SELECT h3_res FROM resolution) ) AS cellid
 	FROM us_ufo
-	WHERE ST_Intersects(geom, 
-                ST_Transform( ST_TileEnvelopeClip(z, x, y, margin => 0.125), 4326)
-            )
+	WHERE ST_Intersects(geom, (SELECT env_geom FROM tile_env))
     GROUP BY cellid
 ), 
 feature AS (
