@@ -1,5 +1,5 @@
 -- UFO / Turbine risk at H3 Resolution 6
-CREATE VIEW ufo_risk_h3_6 AS
+CREATE VIEW ufo_turbine_risk_h3_r6 AS
 WITH resolution AS (
     SELECT 6 AS h3_res
 ),
