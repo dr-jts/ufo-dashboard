@@ -1,5 +1,6 @@
 #  UFO Dashboard
-Code for a UFO Dashboard with PostGIS, H3, pg_tileserv
+Code for a UFO Dashboard with PostGIS, H3, pg_tileserv, pg_featureserv
+
 ![](ufo_risk_dashboard.png)
 
 ## Datasets
