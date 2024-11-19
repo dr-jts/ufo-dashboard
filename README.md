@@ -1,5 +1,6 @@
 #  UFO Dashboard
 Code for a UFO Dashboard with PostGIS, H3, pg_tileserv
+![](ufo_risk_dashboard.png)
 
 ## Datasets
 
@@ -18,6 +19,5 @@ Format: CSV
 Format: Geopackage
 [Global Population Density for 22km (Res 4) H3 Hexagons](https://data.humdata.org/dataset/kontur-population-dataset-22km)
 
-## Architecture
 
-![](ufo_risk_dashboard.png)
+
