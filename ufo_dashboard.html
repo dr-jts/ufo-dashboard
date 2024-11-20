@@ -17,11 +17,60 @@
       position: absolute;
       top: 10px;
       left: 10px;
-      padding: 0px 20px;
-      margin: 2;
+      padding: 8px 16px;
+      margin: 0;
       border: darkblue;
       border-radius: 4px;
       box-shadow: 0 0 0 8px rgba(0,0,0,.1);
+      font-size: 20px;
+    }
+    #coords {
+      background-color: rgba(255,255,255,0.8);
+      color: black;
+      z-index: 2;
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      padding: 0px 20px;
+      margin: 1;
+      border: darkblue;
+      border-radius: 1px;
+      box-shadow: 0 0 0 2px rgba(0,0,0,.1);
+    }
+    .riskPanel {
+      background-color: rgba(255,255,255,0.8);
+      color: black;
+      z-index: 2;
+      position: absolute;
+      top: 80px;
+      left: 10px;
+      xpadding: 0px 20px;
+      xmargin: 1;
+      border: darkblue;
+      border-radius: 1px;
+      box-shadow: 0 0 0 5px rgba(0,0,0,.1);
+    }
+    .riskTitle {
+        background-color: lightgray;
+        padding: 6px 6px;
+        text-align: center;
+    }
+    .riskList {
+      background-color: rgba(255,255,255,0.8);
+      color: black;
+      z-index: 2;
+      height: 190px;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+    .riskEntry {
+        padding: 2px 4px;
+        font-size: 14px;
+        text-align: right;
+    }
+    .riskEntry:hover {
+        cursor:pointer;
+        background-color:#f1cdf7;
     }
     .maplibregl-popup-anchor-top .maplibregl-popup-tip {
         border-bottom-color: #171684;
@@ -53,8 +102,8 @@
     }
     .layer-control {
         position: absolute;
-        top: 10px;
-        right: 50px;
+        top: 110px;
+        right: 10px;
         background: white;
         padding: 10px;
         border-radius: 4px;
@@ -76,6 +125,7 @@
         cursor: pointer;
     }
     .layer-item label {
+        font-size: 14px;
         cursor: pointer;
         user-select: none;
     }
@@ -83,9 +133,12 @@
 </head>
 <body>
 <div id="meta">
-    <h3>UFO Dashboard</h3>
+    UFO Risk Dashboard
 </div>
-
+<div id="coords"></div>
+<div class="riskPanel" id="topRiskPanel">
+    <div class="riskTitle">Turbine Risk<br>Top 10</div>
+    <div class="riskList" id="topRisk"></div></div>
 <div class="layer-control">
     <div class="layer-item">
         <input type="checkbox" id="ufo-toggle" >
@@ -101,6 +154,14 @@
     </div>    
     <br><!---------------------------------------->
     <div class="layer-item">
+        <input type="radio" id="ufo-h3-cluster-toggle" name="hex-layer">
+        <label for="ufo-h3-cluster-toggle">UFO H3 Clusters</label>
+    </div>
+    <div class="layer-item">
+        <input type="radio" id="ufo-h3-toggle" name="hex-layer" >
+        <label for="ufo-h3-toggle">UFOs as H3</label>
+    </div>
+    <div class="layer-item">
         <input type="radio" id="population-toggle" name="hex-layer" >
         <label for="population-toggle">Population</label>
     </div>
@@ -114,7 +175,7 @@
     </div>
     <div class="layer-item">
         <input type="radio" id="ufo-turbine-toggle" name="hex-layer">
-        <label for="ufo-turbine-toggle">UFO / Turbine Risk</label>
+        <label for="ufo-turbine-toggle">Turbine Risk</label>
     </div>
     <div class="layer-item">
         <input type="radio" id="none-toggle" name="hex-layer" checked>
@@ -126,47 +187,99 @@
 
 <script>
 
+
+function getJSON(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function() {
+      var status = xhr.status;
+      if (status === 200) {
+        callback(null, xhr.response);
+      } else {
+        callback(status, xhr.response);
+      }
+    };
+    xhr.send();
+}
+
+function mapFly(x, y) {
+    map.flyTo({
+            center: [x, y],
+            zoom: 9,
+            essential: true // this animation is considered essential with respect to prefers-reduced-motion
+        });
+}
+
+function loadRisk() {
+    getJSON('http://localhost:9000/collections/public.ufo_turbine_risk_h3_r6/items.json?sortBy=-risk&limit=10',
+    function(err, data) {
+    if (err !== null) {
+        alert('Something went wrong: ' + err);
+        return;
+    }
+    topInfo = "";
+    data.features.forEach ((item) => {
+        var entry = "<b>" + item.properties.risk.toFixed(0) + "</b>"
+        + " - <span style='color:red'>" + item.properties.ufo_count + "</span>"
+        + " / <span style='color:blue'>" + item.properties.turbine_count + "</span>";
+        var x = item.geometry.coordinates[0]; 
+        var y = item.geometry.coordinates[1]; 
+        topInfo += "<div class='riskEntry' onClick='mapFly(" + x + "," + y + ")'>" 
+            + entry + "</div>";
+    });
+    document.getElementById('topRisk').innerHTML = topInfo;
+    document.getElementById("topRiskPanel").style.display = "block";
+    });
+}
+
 function hideHexLayers() {
     map.setLayoutProperty('ufo-turbine', 'visibility', 'none');
     map.setLayoutProperty('ufo-density-extrude', 'visibility', 'none');
     map.setLayoutProperty('ufo-density', 'visibility', 'none');
+    map.setLayoutProperty('ufo-h3', 'visibility', 'none');
+    map.setLayoutProperty('ufo-h3-cluster', 'visibility', 'none');
+    map.setLayoutProperty('ufo-h3-cluster-count', 'visibility', 'none');
     map.setLayoutProperty('population', 'visibility', 'none');
+
+    document.getElementById("topRiskPanel").style.display = "none";
 }
 
-function addLayerToggle(layer) {
+function addLayerToggle(layer, isOption) {
     document.getElementById(layer+'-toggle').addEventListener('change', (e) => {
-        hideHexLayers();
+        if (isOption) {
+            hideHexLayers();
+        }
         const visibility = e.target.checked ? 'visible' : 'none';
         map.setLayoutProperty(layer, 'visibility', visibility);
         removePopup();
+        if (layer == 'ufo-turbine') {
+            loadRisk();
+        }
+        if (layer == 'ufo-h3-cluster') {
+            map.setLayoutProperty('ufo-h3-cluster-count', 'visibility', visibility);
+        }
     }); 
 }
-addLayerToggle('ufo-density');
-addLayerToggle('ufo-turbine');
-addLayerToggle('ufo-density-extrude');
-addLayerToggle('population');
+
+addLayerToggle('ufo');
+addLayerToggle('ufo-heat');
+addLayerToggle('turbine');
+
+addLayerToggle('ufo-density', true);
+addLayerToggle('ufo-h3', true);
+addLayerToggle('ufo-h3-cluster', true);
+addLayerToggle('ufo-turbine', true);
+addLayerToggle('ufo-density-extrude', true);
+addLayerToggle('population', true);
 
 document.getElementById('none-toggle').addEventListener('change', (e) => {
     hideHexLayers();
     removePopup();
 });
 
+
 //------------------------------------------------------------
-document.getElementById('ufo-toggle').addEventListener('change', (e) => {
-    const visibility = e.target.checked ? 'visible' : 'none';
-    map.setLayoutProperty('ufo', 'visibility', visibility);
-    removePopup();
-});
-document.getElementById('ufo-heat-toggle').addEventListener('change', (e) => {
-    const visibility = e.target.checked ? 'visible' : 'none';
-    map.setLayoutProperty('ufo-heat', 'visibility', visibility);
-    removePopup();
-});
-document.getElementById('turbine-toggle').addEventListener('change', (e) => {
-    const visibility = e.target.checked ? 'visible' : 'none';
-    map.setLayoutProperty('turbine', 'visibility', visibility);
-    removePopup();
-});
 
 // Function to create popup content
 function createPopupContent(feature, type) {
@@ -175,7 +288,19 @@ function createPopupContent(feature, type) {
             <strong>Risk: ${feature.properties.risk}</strong>
             <br>UFOs: ${feature.properties.ufo_count}
             <br>Turbines: ${feature.properties.turbine_count}
-            <br>Cell: ${feature.properties.cellid} ${Math.round(feature.properties.area).toLocaleString()} sq km
+            <br>Cell: ${feature.properties.cellid}
+            <br>Res: ${feature.properties.h3_res} - ${Math.round(feature.properties.area).toLocaleString()} sq km
+        `;
+    } else if (type === 'ufo-h3') {
+        return `
+            UFOs: <strong>${feature.properties.ufo_count}</strong>
+            <br>Density: ${feature.properties.density}
+            <br>Cell: ${feature.properties.cellid}
+            <br>Res: ${feature.properties.h3_res} - ${Math.round(feature.properties.area).toLocaleString()} sq km
+        `;
+    } else if (type === 'ufo-h3-cluster') {
+        return `
+            UFOs: <strong>${feature.properties.ufo_count}</strong>
         `;
     } else if (type === 'ufo-density' || type === 'ufo-density-extrude') {
         return `
@@ -235,6 +360,7 @@ const mapConfig = {
     hash: true,
     style: {
         version: 8,
+        glyphs:'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
         sources: {
             'carto-dark': {
                 type: 'raster',
@@ -285,7 +411,7 @@ map.on("load", function() {
     map.addLayer({
         'id': "ufo-turbine",
         'source': "public.us_ufo_turbine_h3",
-        'source-layer': "us_ufo_turbine_h3",
+        'source-layer': "default",
         'layout': {
             'visibility': 'none',
         },
@@ -304,10 +430,46 @@ map.on("load", function() {
                     200,
                     '#e400fe',
                 ],
-            'fill-outline-color': '#000000',
+            'fill-outline-color': '#444444',
             'fill-opacity': 0.8
         },
     });
+
+    //----------------------------------------------------
+
+    map.addSource("us_ufo_h3", {
+        type: "vector",
+        tiles: [ 'http://localhost:7800/public.us_ufo_h3/{z}/{x}/{y}.pbf' ],
+        //minzoom: 0,
+        //maxzoom: 22
+    });
+    map.addLayer({
+        'id': "ufo-h3",
+        'source': "us_ufo_h3",
+        'source-layer': "default",
+        'layout': {
+            'visibility': 'none',
+        },
+        'type': "fill",
+        'paint': {
+            'fill-color': [
+                    'interpolate',
+                    ['linear'],
+                    ["to-number", ['get', 'density'] ],
+                    0,
+                    '#ffffdd',
+                    0.3,
+                    '#FBD690',
+                    10,
+                    '#FC623D',
+                    200,
+                    '#e400fe',
+                ],
+            'fill-outline-color': '#ffffff',
+            'fill-opacity': 0.8
+        },
+    });
+
 
     //----------------------------------------------------
 
@@ -439,10 +601,13 @@ map.on("load", function() {
                 0,
                 'rgba(100,0,0 ,0)',
                 0.1,
-                'rgba(255,100,0.6)',
+                'rgba(255,100,0, 0.6)',
+                0.99,
+//                'rgb(178,24,43)',
+                'rgb(255,255,50, 0.6)',
                 1,
 //                'rgb(178,24,43)',
-                'rgb(255,255,50)',
+                '#e400fe',
             ],
             // Adjust the heatmap radius by zoom level
             'heatmap-radius': [
@@ -467,8 +632,68 @@ map.on("load", function() {
         'type': "circle",
         'paint': {
             'circle-color': '#FF0000',
-            'circle-radius': 2
+            'circle-radius': 3
         },
+    });
+        //----------------------------------------------------
+
+    map.addSource("us_ufo_h3_cluster", {
+        type: "vector",
+        tiles: [ 'http://localhost:7800/public.us_ufo_h3_cluster/{z}/{x}/{y}.pbf' ],
+        //minzoom: 0,
+        //maxzoom: 22
+    });
+    map.addLayer({
+        'id': "ufo-h3-cluster",
+        'source': "us_ufo_h3_cluster",
+        'source-layer': "default",
+        'layout': {
+            'visibility': 'none',
+        },
+        'type': "circle",
+        'paint': {
+            'circle-color': [
+                    'interpolate',
+                    ['linear'],
+                    ["to-number", ['get', 'ufo_count'] ],
+                    0,
+                    '#ff0000',
+                    2,
+                    '#FBD690',
+                    100,
+                    '#FC623D',
+                    3000,
+                    '#e400fe',
+                ],
+                'circle-stroke-color': '#ffffff',
+                'circle-stroke-width': 1,
+                'circle-radius': [
+                    'step',
+                    ['get', 'ufo_count'],
+                    3,
+                    5,
+                    15,
+                    100,
+                    20,
+                    1000,
+                    25
+                ]            },
+    });
+    map.addLayer({
+        id: 'ufo-h3-cluster-count',
+        type: 'symbol',
+        source: 'us_ufo_h3_cluster',
+        'source-layer': "default",
+        filter: ['>', ["to-number", ['get', 'ufo_count'] ], 1],
+        layout: {
+            'visibility': 'none',
+            'text-field': '{ufo_count}',
+            'text-font': ['Noto Sans Medium'],
+            'text-size': 14,
+        },
+        'paint': {
+            'text-color': '#ffffff'
+        }
     });
     //------------------------------------------------------------------------
     map.addSource("public.wind_turbines", {
@@ -487,12 +712,12 @@ map.on("load", function() {
         'type': "circle",
         'paint': {
             'circle-color': '#0000FF',
-            'circle-radius': 1.5
+            'circle-radius': 3
         },
     });
 
     // Behaviour for popup layers
-    ['ufo-turbine', 'ufo-density', 'ufo-density-extrude', 'population']
+    ['ufo-h3', 'ufo-h3-cluster', 'ufo-turbine', 'ufo-density', 'ufo-density-extrude', 'population']
     .forEach(layer => {
         map.on('mousemove', layer, (e) => {
             handleHover(e, layer);
@@ -507,8 +732,13 @@ map.on("load", function() {
             currentFeatureId = null;
         });
     });
-});
 
+    map.on('mousemove', (e) => {
+        var ll = e.lngLat.wrap();
+        document.getElementById('coords').innerHTML =
+            `${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}`;
+    });
+});
 
 </script>
 </body>
