@@ -12,11 +12,13 @@ tile_env AS (
 -- Calculate the H3 resolution based on zoom level
 resolution AS (
     SELECT CASE
-        WHEN z <= 2 THEN 2
-        WHEN z <= 4 THEN 3
-        WHEN z <= 6 THEN 4
-        WHEN z <= 8 THEN 5
-        ELSE 6
+        WHEN z <= 2 THEN 0
+        WHEN z <= 3 THEN 1
+        WHEN z <= 4 THEN 2
+        WHEN z <= 6 THEN 3
+        WHEN z <= 8 THEN 4
+        WHEN z <= 10 THEN 5
+                    ELSE 6
     END AS h3_res
 ),
 cell AS (
@@ -41,4 +43,4 @@ SELECT ST_AsMVT(mvtgeom, 'default') FROM mvtgeom
 $$
 LANGUAGE 'sql' STABLE STRICT PARALLEL SAFE;
 
-COMMENT ON FUNCTION public.us_ufo_h3_cluster IS 'US UFO sightings clustered by cells.';
+COMMENT ON FUNCTION public.us_ufo_h3_cluster IS 'US UFO sightings clustered by H3 cells.';
