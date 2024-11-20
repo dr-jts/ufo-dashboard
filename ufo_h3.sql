@@ -13,8 +13,10 @@ tile_env AS (
 resolution AS (
     SELECT CASE
         WHEN z <= 2 THEN 2
-        WHEN z <= 5 THEN z
-        ELSE 6
+        WHEN z <= 4 THEN 3
+        WHEN z <= 6 THEN 4
+        WHEN z <= 8 THEN 5
+                    ELSE 6
     END AS h3_res
 ),
 cell AS (
@@ -26,8 +28,9 @@ cell AS (
 ), 
 feature AS (
     SELECT cellid, ufo_count, 
-        round(1000 * ufo_count / h3_cell_area( cellid)) AS density,
         h3_cell_area( cellid) AS area,
+        (SELECT h3_res FROM resolution) AS h3_res,
+        round(1000 * ufo_count / h3_cell_area( cellid)) AS density,
         ST_Transform( h3_cell_to_boundary_geometry( cellid ), 3857) AS geom
     FROM cell
 ),
@@ -36,7 +39,7 @@ bounds AS ( SELECT ST_TileEnvelope(z, x, y) AS geom ),
 mvtgeom AS (
     -- Generate MVT-compatible geometry (quantize and clip to tile)
     SELECT ST_AsMVTGeom(feature.geom, bounds.geom) AS geom,
-           cellid, ufo_count, area, density
+           cellid, h3_res, ufo_count, area, density
     FROM feature, bounds
 )
 -- Generate MVT encoding of MVT features
