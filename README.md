@@ -29,8 +29,8 @@ Code for a UFO Risk Dashboard with [PostGIS](https://postgis.net/), [H3-pg](http
   
 ### pg_tileserv Functions
 * https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_h3_fn.sql
-* https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_h3_cluster_fn.sql
-* https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_turbine_risk_fn.sql
+* https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_cluster_h3_fn.sql
+* https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_turbine_risk_h3_fn.sql
 
 ### pg_featureserv Views
 * https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_turbine_risk_h3_r6_vw.sql
