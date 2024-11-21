@@ -1,5 +1,5 @@
 #  UFO Risk Dashboard
-Code for a UFO Risk Dashboard with [PostGIS](https://postgis.net/), [H3-pg](https://github.com/zachasme/h3-pg), [pg_tileserv](https://github.com/CrunchyData/pg_tileserv), [pg_featureserv](https://github.com/CrunchyData/pg_featureserv), [MapLibre](https://maplibre.org/).
+A UFO Risk Dashboard using [PostGIS](https://postgis.net/), [H3-pg](https://github.com/zachasme/h3-pg), [pg_tileserv](https://github.com/CrunchyData/pg_tileserv), [pg_featureserv](https://github.com/CrunchyData/pg_featureserv), [MapLibre](https://maplibre.org/).
 
 ![](ufo_risk_dashboard.png)
 
