@@ -28,12 +28,12 @@ Code for a UFO Risk Dashboard with [PostGIS](https://postgis.net/), [H3-pg](http
   * only needed as a patch for bug https://trac.osgeo.org/postgis/ticket/5799 
   
 ### pg_tileserv Functions
-* https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_h3.sql
-* https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_h3_cluster.sql
-* https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_turbine_risk.sql
+* https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_h3_fn.sql
+* https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_h3_cluster_fn.sql
+* https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_turbine_risk_fn.sql
 
 ### pg_featureserv Views
-* https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_turbine_risk_h3_r6.sql
+* https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_turbine_risk_h3_r6_vw.sql
 
 ### Web Map App
 * https://github.com/dr-jts/ufo-dashboard/blob/main/ufo_dashboard.html
